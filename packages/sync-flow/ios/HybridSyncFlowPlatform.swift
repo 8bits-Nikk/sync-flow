@@ -38,8 +38,18 @@ final class HybridSyncFlowPlatform: HybridSyncFlowPlatformSpec {
   func deleteKey(alias: String) throws {
     let status = SecItemDelete(Self.query(alias: alias) as CFDictionary)
     guard status == errSecSuccess || status == errSecItemNotFound else {
-      throw RuntimeError.error(withMessage: "SF_KEYSTORE: cannot delete key (\(status))")
+      throw RuntimeError.error(withMessage: Self.describe(status, "delete"))
     }
+  }
+
+  /// Turns a Keychain status into an actionable SF_KEYSTORE message (D-27).
+  private static func describe(_ status: OSStatus, _ action: String) -> String {
+    if status == errSecMissingEntitlement {  // -34018
+      return "SF_KEYSTORE: cannot \(action) key: the app has no Keychain entitlement (-34018). "
+        + "Fix: build the app code-signed; for simulator CI builds pass CODE_SIGN_IDENTITY=- "
+        + "instead of CODE_SIGNING_ALLOWED=NO."
+    }
+    return "SF_KEYSTORE: cannot \(action) key (OSStatus \(status))"
   }
 
   private static func query(alias: String) -> [String: Any] {
@@ -58,7 +68,7 @@ final class HybridSyncFlowPlatform: HybridSyncFlowPlatformSpec {
     let status = SecItemCopyMatching(q as CFDictionary, &out)
     if status == errSecItemNotFound { return nil }
     guard status == errSecSuccess, let data = out as? Data, data.count == keySize else {
-      throw RuntimeError.error(withMessage: "SF_KEYSTORE: cannot read key (\(status))")
+      throw RuntimeError.error(withMessage: describe(status, "read"))
     }
     return data
   }
@@ -71,7 +81,7 @@ final class HybridSyncFlowPlatform: HybridSyncFlowPlatformSpec {
     q[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
     let status = SecItemAdd(q as CFDictionary, nil)
     guard status == errSecSuccess else {
-      throw RuntimeError.error(withMessage: "SF_KEYSTORE: cannot store key (\(status))")
+      throw RuntimeError.error(withMessage: describe(status, "store"))
     }
   }
 }

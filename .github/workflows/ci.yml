@@ -125,7 +125,7 @@ jobs:
           xcodebuild -workspace SyncFlowTodo.xcworkspace -scheme SyncFlowTodo \
             -configuration Release -sdk iphonesimulator \
             -destination 'generic/platform=iOS Simulator' \
-            -derivedDataPath build CODE_SIGNING_ALLOWED=NO > xcodebuild.log 2>&1 \
+            -derivedDataPath build CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= > xcodebuild.log 2>&1 \
             || { grep -n -B2 -A12 'error:' xcodebuild.log | head -150; tail -80 xcodebuild.log; exit 1; }
       - name: Run gate on the simulator
         # Reads the result file the app writes, instead of a UI driver: Maestro's XCTest driver
