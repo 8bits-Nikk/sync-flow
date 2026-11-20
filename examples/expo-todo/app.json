@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "name": "Sync Flow Todo",
+    "slug": "sync-flow-expo-todo",
+    "version": "0.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "ios": { "bundleIdentifier": "com.nikhilll.syncflow.expotodo" },
+    "android": { "package": "com.nikhilll.syncflow.expotodo" },
+    "plugins": ["@nikhilll/sync-flow"]
+  }
+}
