@@ -1,0 +1,204 @@
+openapi: 3.1.0
+info:
+  title: Sync Flow wire protocol
+  version: '1'
+  summary: Two endpoints that any backend implements to sync with @nikhilll/sync-flow clients.
+  description: Normative text is spec/protocol.md; this file mirrors it for tooling.
+  license:
+    name: MIT
+    identifier: MIT
+servers:
+  - url: https://api.example.com/sync
+security:
+  - bearer: []
+paths:
+  /pull:
+    post:
+      operationId: pull
+      summary: Fetch rows changed since a cursor
+      parameters:
+        - $ref: '#/components/parameters/Protocol'
+        - $ref: '#/components/parameters/Client'
+        - $ref: '#/components/parameters/Schema'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PullRequest' }
+      responses:
+        '200':
+          description: A page of changes
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PullResponse' }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '410':
+          description: RESET_REQUIRED. The cursor is older than the tombstone horizon; wipe synced rows, keep the outbox, pull from null.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '426':
+          description: UPGRADE_REQUIRED. The client's schema version is below minSchemaVersion.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '429': { $ref: '#/components/responses/Error' }
+  /push:
+    post:
+      operationId: push
+      summary: Upload outbox mutations
+      parameters:
+        - $ref: '#/components/parameters/Protocol'
+        - $ref: '#/components/parameters/Client'
+        - $ref: '#/components/parameters/Schema'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PushRequest' }
+      responses:
+        '200':
+          description: One result per mutation, in request order
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PushResponse' }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '413': { $ref: '#/components/responses/Error' }
+        '426': { $ref: '#/components/responses/Error' }
+        '429': { $ref: '#/components/responses/Error' }
+  /events:
+    get:
+      operationId: events
+      summary: Optional realtime poke (Server-Sent Events, no row data)
+      parameters:
+        - $ref: '#/components/parameters/Protocol'
+        - $ref: '#/components/parameters/Client'
+        - $ref: '#/components/parameters/Schema'
+      responses:
+        '200':
+          description: 'Event stream; each event is `event: poke` with `data: {}`'
+          content:
+            text/event-stream:
+              schema: { type: string }
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+  parameters:
+    Protocol:
+      name: X-SyncFlow-Protocol
+      in: header
+      required: true
+      schema: { type: string, const: '1' }
+    Client:
+      name: X-SyncFlow-Client
+      in: header
+      required: true
+      description: Stable client id (UUIDv7)
+      schema: { type: string, format: uuid }
+    Schema:
+      name: X-SyncFlow-Schema
+      in: header
+      required: true
+      description: The client's schema version
+      schema: { type: integer, minimum: 1 }
+  responses:
+    Error:
+      description: Error
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+          enum:
+            [
+              BAD_REQUEST,
+              PROTOCOL_UNSUPPORTED,
+              UNAUTHORIZED,
+              FORBIDDEN,
+              RESET_REQUIRED,
+              PAYLOAD_TOO_LARGE,
+              UPGRADE_REQUIRED,
+              RATE_LIMITED,
+              INTERNAL,
+            ]
+        message: { type: string }
+    Row:
+      type: object
+      required: [id, _v]
+      properties:
+        id: { type: string, format: uuid }
+        _v: { type: integer, minimum: 1 }
+      additionalProperties: true
+    PullRequest:
+      type: object
+      required: [cursor]
+      properties:
+        cursor: { type: [string, 'null'] }
+        limit: { type: integer, minimum: 1, default: 1000 }
+      additionalProperties: false
+    PullResponse:
+      type: object
+      required: [changes, deletes, cursor, hasMore]
+      properties:
+        changes:
+          type: object
+          additionalProperties:
+            type: array
+            items: { $ref: '#/components/schemas/Row' }
+        deletes:
+          type: object
+          additionalProperties:
+            type: array
+            items: { type: string, format: uuid }
+        cursor: { type: string }
+        hasMore: { type: boolean }
+    Mutation:
+      type: object
+      required: [id, table, op, rowId]
+      properties:
+        id: { type: string, format: uuid, description: UUIDv7 }
+        table: { type: string }
+        op: { type: string, enum: [insert, update, delete] }
+        rowId: { type: string, format: uuid }
+        patch: { type: object, additionalProperties: true }
+        baseVersion: { type: [integer, 'null'] }
+      additionalProperties: false
+    PushRequest:
+      type: object
+      required: [mutations]
+      properties:
+        mutations:
+          type: array
+          maxItems: 100
+          items: { $ref: '#/components/schemas/Mutation' }
+      additionalProperties: false
+    MutationResult:
+      type: object
+      required: [id, status]
+      properties:
+        id: { type: string, format: uuid }
+        status: { type: string, enum: [applied, duplicate, rejected, conflict] }
+        code: { type: string, description: Present when status is rejected }
+        row:
+          oneOf:
+            - $ref: '#/components/schemas/Row'
+            - type: 'null'
+    PushResponse:
+      type: object
+      required: [results, cursor]
+      properties:
+        results:
+          type: array
+          items: { $ref: '#/components/schemas/MutationResult' }
+        cursor: { type: string, description: Write checkpoint }
