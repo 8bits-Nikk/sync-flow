@@ -17,7 +17,7 @@ changes through a new DECISIONS.md entry approved by the owner.
 | Path | What |
 |---|---|
 | `packages/sync-flow/` | App package: C++ core (`cpp/`), Swift (`ios/`), Kotlin (`android/`), Nitro bindings (`nitrogen/`), TypeScript (`src/`) |
-| `packages/sync-flow/cpp/third_party/` | Vendored SQLite3MultipleCiphers and yyjson. Never edit; update by replacing the whole folder and the version in its `VERSION` file |
+| `packages/sync-flow/cpp/third_party/` | Vendored SQLite3MultipleCiphers and yyjson. Never edit; update by replacing the whole folder and the version in its `VENDOR.txt` file (never name it `VERSION`: on case-insensitive macOS it shadows the C++ `<version>` header) |
 | `packages/sync-flow-server/` | Server kit, CLI and standalone server (TypeScript) |
 | `spec/` | Normative wire protocol (`protocol.md`) and `openapi.yaml` |
 | `examples/` | Example and pilot apps |
