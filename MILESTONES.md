@@ -19,14 +19,14 @@ The *what* and *why* live in [PLAN.md](PLAN.md) and [DECISIONS.md](DECISIONS.md)
 
 | Milestone | Weeks | Tasks | Done | Gate | Status |
 |---|---|---|---:|---|---|
-| [M0 Skeleton](#m0-skeleton-week-1) | 1 | 14 | 3 | Empty Expo app opens an encrypted DB from JS | In progress |
+| [M0 Skeleton](#m0-skeleton-week-1) | 1 | 14 | 11 | Empty Expo app opens an encrypted DB from JS | In progress |
 | [M1 Local core](#m1-local-core-weeks-24) | 2–4 | 14 | 0 | **A:** local-only todo app works offline; local perf met | — |
 | [M2 Sync](#m2-sync-weeks-57) | 5–7 | 17 | 0 | **B:** property tests converge; kill-mid-sync e2e; conformance green | — |
 | [M3 Agent-proof 0.1.0](#m3-agent-proof-010-weeks-89) | 8–9 | 13 | 0 | **C:** a fresh agent adds sync to a blank Expo app unaided | — |
 | [M3b Standalone server 0.2.0](#m3b-standalone-server--pilot-020-weeks-1011) | 10–11 | 15 | 0 | **D:** pilot syncs with zero sync code in the backend | — |
 | [M4 0.5](#m4-05-weeks-1216) | 12–16 | 13 | 0 | Pilot in daily use 2 weeks, no data-loss bugs | — |
 | [M5 1.0+](#m5-10-and-later) | — | 6 | 0 | — | — |
-| **Total** | | **92** | **3** | | |
+| **Total** | | **92** | **11** | | |
 
 **Your tasks at a glance** (👤 and 👥): M0-01, M0-02, M0-03, M0-13, M0-14, M1-14, M2-17, M3-12, M3-13, M3b-14, M3b-15, M4-12, M4-13, M5-01, M5-06.
 The rest is agent work you review.
@@ -38,43 +38,44 @@ The rest is agent work you review.
 **Goal:** the repo exists, CI builds a Nitro module on iOS and Android, and SQLite3MultipleCiphers opens an encrypted database.
 **Gate:** an empty Expo app (`examples/expo-todo`, prebuilt) calls `SyncFlow.open()` from JS, writes one row to an encrypted DB and reads it back, on an Android emulator and an iOS simulator, in CI.
 
-- [ ] **M0-01 👤 Create the GitHub repo**
+- [x] **M0-01 👤 Create the GitHub repo**
   - **What:** public repo `8bits-Nikk/sync-flow`, MIT, empty.
   - **How:** github.com → New repository → name `sync-flow`, Public, no README (the agent pushes the first commit). Or reply "create repo" and I run `gh repo create 8bits-Nikk/sync-flow --public`.
   - **Done when:** the repo URL opens.
-- [ ] **M0-02 👤 Confirm the npm scope**
+- [x] **M0-02 👤 Confirm the npm scope**
   - **What:** `@nikhilll/*` packages need the npm user `nikhilll` (or an org with that name) to be yours.
   - **How:** sign in at npmjs.com and check that the profile is `nikhilll`. Turn on 2FA if it's off (Account → Two-Factor Authentication).
   - **Done when:** you've confirmed it's your account.
-- [ ] **M0-03 👤 Decide where iOS gets built**
+- [x] **M0-03 👤 Decide where iOS gets built**
   - **What:** iOS builds need macOS. This server is Linux.
   - **How:** pick one: (a) GitHub Actions macOS runners only (free for public repos, slower feedback), or (b) also your own Mac for local debugging. Tell me which.
   - **Done when:** the choice is written here.
+  - **Chosen (2026-11-20):** both. CI uses GitHub macOS runners, and the owner has a Mac for local debugging.
 - [x] **M0-04 🤖 Monorepo scaffold**
   - **What:** pnpm workspaces, `packages/sync-flow`, `packages/sync-flow-server`, `examples/`, `spec/`, `docs/`, `bench/`, `skills/`. MIT `LICENSE`, root `AGENTS.md`, copy PLAN.md, DECISIONS.md and MILESTONES.md in. TypeScript strict, ESLint, Prettier, changesets (D-30).
   - **Done when:** `pnpm i && pnpm -r build && pnpm -r lint` passes on a clean clone.
 - [x] **M0-05 🤖 Root `AGENTS.md` for contributors**
   - **What:** how to build, test and run each package; "read PLAN §4–9 and DECISIONS before coding"; commit format; never change a decision in code.
   - **Done when:** a new agent session can build the repo using only this file.
-- [ ] **M0-06 🤖 Nitro module skeleton**
+- [x] **M0-06 🤖 Nitro module skeleton**
   - **What:** `packages/sync-flow` as a Nitro module (`nitro.json`, Nitrogen output committed, D-04), with one HybridObject `SyncFlowCore` exposing `version(): string`.
   - **Done when:** the example app logs the version on both platforms.
-- [~] **M0-07 🤖 Vendor SQLite3MultipleCiphers + yyjson**
+- [x] **M0-07 🤖 Vendor SQLite3MultipleCiphers + yyjson**
   - **What:** add the amalgamations under `cpp/third_party/` with pinned versions and licence files (D-06, D-09). CMake for Android, podspec for iOS.
   - **Done when:** both compile in the module on Android NDK r27+ and current Xcode (this also checks the "to verify" item in PLAN §13).
-- [~] **M0-08 🤖 Encrypted open/close**
+- [x] **M0-08 🤖 Encrypted open/close**
   - **What:** C++ `Database::open(path, key)` with WAL, `synchronous=NORMAL` and `foreign_keys=OFF`. Key generation plus Keychain/Keystore storage in Swift/Kotlin (D-05, D-07).
   - **Done when:** an unencrypted `sqlite3` CLI fails to read the file and the app reads it fine.
 - [x] **M0-09 🤖 C++ test harness**
   - **What:** GoogleTest under `cpp/tests`, built with CMake on Linux.
   - **Done when:** `pnpm test:cpp` runs one open/write/read test.
-- [ ] **M0-10 🤖 Expo example + config plugin stub**
+- [x] **M0-10 🤖 Expo example + config plugin stub**
   - **What:** `examples/expo-todo` (Expo SDK 55+, latest available) using the package; `app.plugin.js` auto-registered. In Expo Go, throw `SF_EXPO_GO` (D-03).
   - **Done when:** `npx expo prebuild && npx expo run:android` shows the row read back.
-- [ ] **M0-11 🤖 CI**
+- [~] **M0-11 🤖 CI**
   - **What:** GitHub Actions: lint, typecheck, unit tests, C++ tests (Linux), Android emulator build + Maestro smoke, iOS simulator build + Maestro smoke (macOS runner).
   - **Done when:** all jobs are green on `main`.
-- [ ] **M0-12 🤖 `spec/protocol.md` v1**
+- [x] **M0-12 🤖 `spec/protocol.md` v1**
   - **What:** PLAN §5 expanded into a normative spec (MUST/SHOULD), plus a first `spec/openapi.yaml`.
   - **Done when:** every request, response, status code and header in §5 is in the spec.
 - [ ] **M0-13 👥 Reserve the npm names**
