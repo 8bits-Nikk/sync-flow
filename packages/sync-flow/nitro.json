@@ -1,0 +1,20 @@
+{
+  "$schema": "https://nitro.margelo.com/nitro.schema.json",
+  "cxxNamespace": ["syncflow"],
+  "ios": {
+    "iosModuleName": "SyncFlow"
+  },
+  "android": {
+    "androidNamespace": ["syncflow"],
+    "androidCxxLibName": "SyncFlow"
+  },
+  "autolinking": {
+    "SyncFlowCore": {
+      "all": {
+        "language": "c++",
+        "implementationClassName": "HybridSyncFlowCore"
+      }
+    }
+  },
+  "ignorePaths": ["**/node_modules"]
+}

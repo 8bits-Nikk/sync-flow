@@ -24,22 +24,39 @@
     "dist",
     "src",
     "cpp",
+    "!cpp/tests",
+    "!cpp/third_party/**/*.md",
     "ios",
-    "android",
+    "android/build.gradle",
+    "android/gradle.properties",
+    "android/fix-prefab.gradle",
+    "android/CMakeLists.txt",
+    "android/src",
     "nitrogen",
-    "*.podspec",
+    "SyncFlow.podspec",
     "nitro.json",
     "app.plugin.js",
     "AGENTS.md",
     "llms.txt",
     "README.md",
-    "!**/tests",
-    "!**/__tests__",
     "!**/*.test.ts"
   ],
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts --clean",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "codegen": "nitrogen --logLevel=info"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "react-native": "*",
+    "react-native-nitro-modules": "*"
+  },
+  "devDependencies": {
+    "nitrogen": "0.37.2",
+    "react-native-nitro-modules": "0.37.2",
+    "react": "19.3.0",
+    "react-native": "0.88.1",
+    "@types/react": "19.3.0"
   }
 }
