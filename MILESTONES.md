@@ -19,14 +19,14 @@ The *what* and *why* live in [PLAN.md](PLAN.md) and [DECISIONS.md](DECISIONS.md)
 
 | Milestone | Weeks | Tasks | Done | Gate | Status |
 |---|---|---|---:|---|---|
-| [M0 Skeleton](#m0-skeleton-week-1) | 1 | 14 | 11 | Empty Expo app opens an encrypted DB from JS | In progress |
+| [M0 Skeleton](#m0-skeleton-week-1) | 1 | 14 | 12 | Empty Expo app opens an encrypted DB from JS | Gate passed in CI; owner review pending |
 | [M1 Local core](#m1-local-core-weeks-24) | 2–4 | 14 | 0 | **A:** local-only todo app works offline; local perf met | — |
 | [M2 Sync](#m2-sync-weeks-57) | 5–7 | 17 | 0 | **B:** property tests converge; kill-mid-sync e2e; conformance green | — |
 | [M3 Agent-proof 0.1.0](#m3-agent-proof-010-weeks-89) | 8–9 | 13 | 0 | **C:** a fresh agent adds sync to a blank Expo app unaided | — |
 | [M3b Standalone server 0.2.0](#m3b-standalone-server--pilot-020-weeks-1011) | 10–11 | 15 | 0 | **D:** pilot syncs with zero sync code in the backend | — |
 | [M4 0.5](#m4-05-weeks-1216) | 12–16 | 13 | 0 | Pilot in daily use 2 weeks, no data-loss bugs | — |
 | [M5 1.0+](#m5-10-and-later) | — | 6 | 0 | — | — |
-| **Total** | | **92** | **11** | | |
+| **Total** | | **92** | **12** | | |
 
 **Your tasks at a glance** (👤 and 👥): M0-01, M0-02, M0-03, M0-13, M0-14, M1-14, M2-17, M3-12, M3-13, M3b-14, M3b-15, M4-12, M4-13, M5-01, M5-06.
 The rest is agent work you review.
@@ -72,7 +72,7 @@ The rest is agent work you review.
 - [x] **M0-10 🤖 Expo example + config plugin stub**
   - **What:** `examples/expo-todo` (Expo SDK 55+, latest available) using the package; `app.plugin.js` auto-registered. In Expo Go, throw `SF_EXPO_GO` (D-03).
   - **Done when:** `npx expo prebuild && npx expo run:android` shows the row read back.
-- [~] **M0-11 🤖 CI**
+- [x] **M0-11 🤖 CI**
   - **What:** GitHub Actions: lint, typecheck, unit tests, C++ tests (Linux), Android emulator build + Maestro smoke, iOS simulator build + Maestro smoke (macOS runner).
   - **Done when:** all jobs are green on `main`.
 - [x] **M0-12 🤖 `spec/protocol.md` v1**
