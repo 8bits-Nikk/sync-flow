@@ -1,0 +1,45 @@
+{
+  "name": "@nikhilll/sync-flow",
+  "version": "0.0.0",
+  "description": "Offline-first data for React Native and Expo, with the sync logic done for you. JSI/C++ core via Nitro Modules.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/8bits-Nikk/sync-flow.git",
+    "directory": "packages/sync-flow"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "react-native": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "react-native": "./src/index.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "src",
+    "cpp",
+    "ios",
+    "android",
+    "nitrogen",
+    "*.podspec",
+    "nitro.json",
+    "app.plugin.js",
+    "AGENTS.md",
+    "llms.txt",
+    "README.md",
+    "!**/tests",
+    "!**/__tests__",
+    "!**/*.test.ts"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
+  }
+}

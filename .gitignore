@@ -1,0 +1,17 @@
+node_modules/
+dist/
+lib/
+build/
+coverage/
+*.tsbuildinfo
+.DS_Store
+# native build output
+packages/sync-flow/android/build/
+packages/sync-flow/android/.cxx/
+packages/sync-flow/ios/build/
+examples/*/android/
+examples/*/ios/
+examples/*/.expo/
+*.db
+*.db-wal
+*.db-shm

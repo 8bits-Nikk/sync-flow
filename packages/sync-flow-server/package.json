@@ -1,0 +1,34 @@
+{
+  "name": "@nikhilll/sync-flow-server",
+  "version": "0.0.0",
+  "description": "Server kit and standalone server for Sync Flow: offline-first sync for React Native and Expo.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/8bits-Nikk/sync-flow.git",
+    "directory": "packages/sync-flow-server"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "AGENTS.md",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  }
+}

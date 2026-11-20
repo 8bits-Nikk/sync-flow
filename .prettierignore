@@ -1,0 +1,8 @@
+pnpm-lock.yaml
+node_modules
+dist
+lib
+build
+nitrogen/generated
+packages/sync-flow/cpp/third_party
+*.md

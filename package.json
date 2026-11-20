@@ -1,0 +1,30 @@
+{
+  "name": "sync-flow-monorepo",
+  "private": true,
+  "description": "Offline-first sync for React Native and Expo. Monorepo root.",
+  "license": "MIT",
+  "packageManager": "pnpm@10.12.1",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "pnpm -r --filter './packages/*' build",
+    "typecheck": "pnpm -r --filter './packages/*' typecheck",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write .",
+    "test": "pnpm -r --filter './packages/*' test",
+    "test:cpp": "cmake -S packages/sync-flow/cpp -B build/cpp -G Ninja -DCMAKE_BUILD_TYPE=Debug && cmake --build build/cpp && ctest --test-dir build/cpp --output-on-failure",
+    "changeset": "changeset"
+  },
+  "devDependencies": {
+    "@changesets/cli": "3.0.3",
+    "@eslint/js": "10.0.1",
+    "@types/node": "26.6.6",
+    "eslint": "10.15.0",
+    "prettier": "3.10.1",
+    "tsup": "9.0.0",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.73.0",
+    "vitest": "5.1.1"
+  }
+}
