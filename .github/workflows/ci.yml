@@ -102,7 +102,7 @@ jobs:
 
   ios:
     name: iOS build + Maestro gate
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 75
     steps:
       - uses: actions/checkout@v7
@@ -111,6 +111,10 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
+      - name: Select the newest Xcode (Expo SDK 58 needs Xcode 26+)
+        run: |
+          sudo xcode-select -s "$(ls -d /Applications/Xcode_2*.app | grep -vi beta | sort -V | tail -1)"
+          xcodebuild -version
       - run: pnpm install --frozen-lockfile
       - name: Prebuild + pods
         working-directory: examples/expo-todo
@@ -118,11 +122,11 @@ jobs:
       - name: Build for the simulator (Release, no Metro needed)
         working-directory: examples/expo-todo/ios
         run: |
-          set -o pipefail
           xcodebuild -workspace SyncFlowTodo.xcworkspace -scheme SyncFlowTodo \
             -configuration Release -sdk iphonesimulator \
             -destination 'generic/platform=iOS Simulator' \
-            -derivedDataPath build CODE_SIGNING_ALLOWED=NO | tail -40
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO > xcodebuild.log 2>&1 \
+            || { grep -n -B2 -A12 'error:' xcodebuild.log | head -150; tail -80 xcodebuild.log; exit 1; }
       - name: Install Maestro
         run: |
           curl -fsSL "https://get.maestro.mobile.dev" | MAESTRO_VERSION=$MAESTRO_VERSION bash
