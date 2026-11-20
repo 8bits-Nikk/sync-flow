@@ -1,3 +1,4 @@
+import { File, Paths } from 'expo-file-system';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { unstable_getCore, unstable_getPlatform, VERSION } from '@nikhilll/sync-flow';
@@ -26,11 +27,19 @@ export default function App() {
   const [version, setVersion] = useState('');
 
   useEffect(() => {
+    let text: string;
     try {
       setVersion(unstable_getCore().libraryVersion);
-      setResult(runGateCheck());
+      text = runGateCheck();
     } catch (e) {
-      setResult(`DB FAILED: ${e instanceof Error ? e.message : String(e)}`);
+      text = `DB FAILED: ${e instanceof Error ? e.message : String(e)}`;
+    }
+    setResult(text);
+    // CI on iOS reads this file from the simulator's app container (no UI driver needed).
+    try {
+      new File(Paths.document, 'm0-gate-result.txt').write(text);
+    } catch {
+      // Only used by CI; the on-screen text is the real result.
     }
   }, []);
 

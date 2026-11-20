@@ -127,16 +127,36 @@ jobs:
             -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath build CODE_SIGNING_ALLOWED=NO > xcodebuild.log 2>&1 \
             || { grep -n -B2 -A12 'error:' xcodebuild.log | head -150; tail -80 xcodebuild.log; exit 1; }
-      - name: Install Maestro
-        run: |
-          curl -fsSL "https://get.maestro.mobile.dev" | MAESTRO_VERSION=$MAESTRO_VERSION bash
-          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
       - name: Run gate on the simulator
+        # Reads the result file the app writes, instead of a UI driver: Maestro's XCTest driver
+        # timed out on cold CI simulators. The same Maestro flow runs on a local Mac and on Android.
         env:
-          MAESTRO_DRIVER_STARTUP_TIMEOUT: 300000 # cold simulators on CI need well over the default
+          APP: examples/expo-todo/ios/build/Build/Products/Release-iphonesimulator/SyncFlowTodo.app
+          BUNDLE: com.nikhilll.syncflow.expotodo
         run: |
-          UDID=$(xcrun simctl list devices available -j | python3 -c "import json,sys; d=json.load(sys.stdin)['devices']; print(next(x['udid'] for k,v in d.items() if 'iOS' in k for x in v if x['name'].startswith('iPhone')))")
+          read RUNTIME DEVTYPE < <(xcrun simctl list -j runtimes | python3 -c "
+          import json, sys
+          rs = [r for r in json.load(sys.stdin)['runtimes'] if r['platform'] == 'iOS' and r['isAvailable']]
+          r = max(rs, key=lambda r: [int(x) for x in r['version'].split('.')])
+          dt = next(d['identifier'] for d in r['supportedDeviceTypes'] if d['productFamily'] == 'iPhone')
+          print(r['identifier'], dt)")
+          echo "runtime=$RUNTIME device=$DEVTYPE"
+          UDID=$(xcrun simctl create sf-gate "$DEVTYPE" "$RUNTIME")
           xcrun simctl boot "$UDID"
           xcrun simctl bootstatus "$UDID" -b
-          xcrun simctl install "$UDID" examples/expo-todo/ios/build/Build/Products/Release-iphonesimulator/SyncFlowTodo.app
-          maestro --device "$UDID" test examples/expo-todo/.maestro/m0-gate.yaml
+          xcrun simctl install "$UDID" "$APP"
+
+          check() {  # $1 = expected text; launches the app and waits for its result file
+            xcrun simctl launch "$UDID" "$BUNDLE"
+            RESULT="$(xcrun simctl get_app_container "$UDID" "$BUNDLE" data)/Documents/m0-gate-result.txt"
+            for i in $(seq 1 60); do
+              if [ -f "$RESULT" ] && grep -q "$1" "$RESULT"; then echo "OK: $(cat "$RESULT")"; return 0; fi
+              sleep 2
+            done
+            echo "::error::expected '$1', got: $(cat "$RESULT" 2>/dev/null || echo '(no result file)')"
+            return 1
+          }
+          check 'DB OK: Milk | launches=1'
+          xcrun simctl terminate "$UDID" "$BUNDLE"
+          rm -f "$(xcrun simctl get_app_container "$UDID" "$BUNDLE" data)/Documents/m0-gate-result.txt"
+          check 'DB OK: Milk | launches=2'
