@@ -12,5 +12,11 @@ import NitroModules
 public final class SyncFlowAutolinking {
   public typealias bridge = margelo.nitro.syncflow.bridge.swift
 
-  
+  public static func createSyncFlowPlatform() -> bridge.std__shared_ptr_HybridSyncFlowPlatformSpec_ {
+    let hybridObject = HybridSyncFlowPlatform()
+    return { () -> bridge.std__shared_ptr_HybridSyncFlowPlatformSpec_ in
+      let __cxxWrapped = hybridObject.getCxxWrapper()
+      return __cxxWrapped.getCxxPart()
+    }()
+  }
 }

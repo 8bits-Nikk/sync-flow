@@ -8,13 +8,19 @@
 #pragma once
 
 // Forward declarations of C++ defined types
-
+// Forward declaration of `HybridSyncFlowPlatformSpec` to properly resolve imports.
+namespace margelo::nitro::syncflow { class HybridSyncFlowPlatformSpec; }
 
 // Forward declarations of Swift defined types
-
+// Forward declaration of `HybridSyncFlowPlatformSpec_cxx` to properly resolve imports.
+namespace SyncFlow { class HybridSyncFlowPlatformSpec_cxx; }
 
 // Include C++ defined types
-
+#include "HybridSyncFlowPlatformSpec.hpp"
+#include <NitroModules/ArrayBuffer.hpp>
+#include <NitroModules/Result.hpp>
+#include <exception>
+#include <memory>
 
 /**
  * Contains specialized versions of C++ templated types so they can be accessed from Swift,
@@ -22,6 +28,34 @@
  */
 namespace margelo::nitro::syncflow::bridge::swift {
 
+  // pragma MARK: std::shared_ptr<HybridSyncFlowPlatformSpec>
+  /**
+   * Specialized version of `std::shared_ptr<HybridSyncFlowPlatformSpec>`.
+   */
+  using std__shared_ptr_HybridSyncFlowPlatformSpec_ = std::shared_ptr<HybridSyncFlowPlatformSpec>;
+  std::shared_ptr<HybridSyncFlowPlatformSpec> create_std__shared_ptr_HybridSyncFlowPlatformSpec_(void* NON_NULL swiftUnsafePointer) noexcept;
+  void* NON_NULL get_std__shared_ptr_HybridSyncFlowPlatformSpec_(std__shared_ptr_HybridSyncFlowPlatformSpec_ cppType);
   
+  // pragma MARK: std::weak_ptr<HybridSyncFlowPlatformSpec>
+  using std__weak_ptr_HybridSyncFlowPlatformSpec_ = std::weak_ptr<HybridSyncFlowPlatformSpec>;
+  inline std__weak_ptr_HybridSyncFlowPlatformSpec_ weakify_std__shared_ptr_HybridSyncFlowPlatformSpec_(const std::shared_ptr<HybridSyncFlowPlatformSpec>& strong) noexcept { return strong; }
+  
+  // pragma MARK: Result<std::shared_ptr<ArrayBuffer>>
+  using Result_std__shared_ptr_ArrayBuffer__ = Result<std::shared_ptr<ArrayBuffer>>;
+  inline Result_std__shared_ptr_ArrayBuffer__ create_Result_std__shared_ptr_ArrayBuffer__(const std::shared_ptr<ArrayBuffer>& value) noexcept {
+    return Result<std::shared_ptr<ArrayBuffer>>::withValue(value);
+  }
+  inline Result_std__shared_ptr_ArrayBuffer__ create_Result_std__shared_ptr_ArrayBuffer__(const std::exception_ptr& error) noexcept {
+    return Result<std::shared_ptr<ArrayBuffer>>::withError(error);
+  }
+  
+  // pragma MARK: Result<void>
+  using Result_void_ = Result<void>;
+  inline Result_void_ create_Result_void_() noexcept {
+    return Result<void>::withValue();
+  }
+  inline Result_void_ create_Result_void_(const std::exception_ptr& error) noexcept {
+    return Result<void>::withError(error);
+  }
 
 } // namespace margelo::nitro::syncflow::bridge::swift

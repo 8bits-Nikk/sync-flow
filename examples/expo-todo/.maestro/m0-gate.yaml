@@ -1,10 +1,15 @@
-# M0 gate: an empty Expo app opens an encrypted DB from JS, writes a row and reads it back.
+# M0 gate: an empty Expo app opens an encrypted DB from JS (key from Keychain/Keystore), writes a
+# row and reads it back. The second launch must reopen the same file with the stored key.
 appId: com.nikhilll.syncflow.expotodo
 ---
 - launchApp:
     clearState: true
 - extendedWaitUntil:
-    visible: 'DB OK: Milk.*'
+    visible: 'DB OK: Milk \| launches=1'
     timeout: 30000
 - assertVisible: 'SQLite3 Multiple Ciphers 2.7.1.*'
-- assertNotVisible: 'DB FAILED.*'
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: 'DB OK: Milk \| launches=2'
+    timeout: 30000

@@ -7,10 +7,11 @@
 
 #import <Foundation/Foundation.h>
 #import <NitroModules/HybridObjectRegistry.hpp>
-
+#import "SyncFlow-Swift-Cxx-Umbrella.hpp"
 #import <type_traits>
 
 #include "HybridSyncFlowCore.hpp"
+#include "HybridSyncFlowPlatformSpecSwift.hpp"
 
 @interface SyncFlowAutolinking : NSObject
 @end
@@ -28,6 +29,13 @@
                     "The HybridObject \"HybridSyncFlowCore\" is not default-constructible! "
                     "Create a public constructor that takes zero arguments to be able to autolink this HybridObject.");
       return std::make_shared<HybridSyncFlowCore>();
+    }
+  );
+  HybridObjectRegistry::registerHybridObjectConstructor(
+    "SyncFlowPlatform",
+    []() -> std::shared_ptr<HybridObject> {
+      std::shared_ptr<HybridSyncFlowPlatformSpec> hybridObject = SyncFlow::SyncFlowAutolinking::createSyncFlowPlatform();
+      return hybridObject;
     }
   );
 }

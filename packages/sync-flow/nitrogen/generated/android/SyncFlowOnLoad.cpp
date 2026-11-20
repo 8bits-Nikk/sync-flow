@@ -15,7 +15,9 @@
 #include <fbjni/fbjni.h>
 #include <NitroModules/HybridObjectRegistry.hpp>
 
+#include "JHybridSyncFlowPlatformSpec.hpp"
 #include "HybridSyncFlowCore.hpp"
+#include <NitroModules/DefaultConstructableObject.hpp>
 
 namespace margelo::nitro::syncflow {
 
@@ -25,14 +27,21 @@ int initialize(JavaVM* vm) {
   });
 }
 
-
+struct JHybridSyncFlowPlatformSpecImpl: public jni::JavaClass<JHybridSyncFlowPlatformSpecImpl, JHybridSyncFlowPlatformSpec::JavaPart> {
+  static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/syncflow/HybridSyncFlowPlatform;";
+  static std::shared_ptr<JHybridSyncFlowPlatformSpec> create() {
+    static const auto constructorFn = javaClassStatic()->getConstructor<JHybridSyncFlowPlatformSpecImpl::javaobject()>();
+    jni::local_ref<JHybridSyncFlowPlatformSpec::JavaPart> javaPart = javaClassStatic()->newObject(constructorFn);
+    return javaPart->getJHybridSyncFlowPlatformSpec();
+  }
+};
 
 void registerAllNatives() {
   using namespace margelo::nitro;
   using namespace margelo::nitro::syncflow;
 
   // Register native JNI methods
-  
+  margelo::nitro::syncflow::JHybridSyncFlowPlatformSpec::CxxPart::registerNatives();
 
   // Register Nitro Hybrid Objects
   HybridObjectRegistry::registerHybridObjectConstructor(
@@ -42,6 +51,12 @@ void registerAllNatives() {
                     "The HybridObject \"HybridSyncFlowCore\" is not default-constructible! "
                     "Create a public constructor that takes zero arguments to be able to autolink this HybridObject.");
       return std::make_shared<HybridSyncFlowCore>();
+    }
+  );
+  HybridObjectRegistry::registerHybridObjectConstructor(
+    "SyncFlowPlatform",
+    []() -> std::shared_ptr<HybridObject> {
+      return JHybridSyncFlowPlatformSpecImpl::create();
     }
   );
 }

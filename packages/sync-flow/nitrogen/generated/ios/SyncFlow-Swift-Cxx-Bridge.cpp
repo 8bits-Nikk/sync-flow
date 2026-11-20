@@ -8,10 +8,26 @@
 #include "SyncFlow-Swift-Cxx-Bridge.hpp"
 
 // Include C++ implementation defined types
-
+#include "HybridSyncFlowPlatformSpecSwift.hpp"
+#include "SyncFlow-Swift-Cxx-Umbrella.hpp"
+#include <NitroModules/NitroDefines.hpp>
 
 namespace margelo::nitro::syncflow::bridge::swift {
 
-  
+  // pragma MARK: std::shared_ptr<HybridSyncFlowPlatformSpec>
+  std::shared_ptr<HybridSyncFlowPlatformSpec> create_std__shared_ptr_HybridSyncFlowPlatformSpec_(void* NON_NULL swiftUnsafePointer) noexcept {
+    SyncFlow::HybridSyncFlowPlatformSpec_cxx swiftPart = SyncFlow::HybridSyncFlowPlatformSpec_cxx::fromUnsafe(swiftUnsafePointer);
+    return std::make_shared<margelo::nitro::syncflow::HybridSyncFlowPlatformSpecSwift>(swiftPart);
+  }
+  void* NON_NULL get_std__shared_ptr_HybridSyncFlowPlatformSpec_(std__shared_ptr_HybridSyncFlowPlatformSpec_ cppType) {
+    std::shared_ptr<margelo::nitro::syncflow::HybridSyncFlowPlatformSpecSwift> swiftWrapper = std::dynamic_pointer_cast<margelo::nitro::syncflow::HybridSyncFlowPlatformSpecSwift>(cppType);
+    #ifdef NITRO_DEBUG
+    if (swiftWrapper == nullptr) [[unlikely]] {
+      throw std::runtime_error("Class \"HybridSyncFlowPlatformSpec\" is not implemented in Swift!");
+    }
+    #endif
+    SyncFlow::HybridSyncFlowPlatformSpec_cxx& swiftPart = swiftWrapper->getSwiftPart();
+    return swiftPart.toUnsafe();
+  }
 
 } // namespace margelo::nitro::syncflow::bridge::swift

@@ -5,5 +5,8 @@ export { SyncFlowError } from './errors';
 export type { SyncFlowErrorCode } from './errors';
 
 // M0 only: the raw core, for the gate check in examples/expo-todo. Removed from the public API in M1.
-export { getCore as unstable_getCore } from './native';
-export type { SyncFlowCore as unstable_SyncFlowCore } from './native';
+export { getCore as unstable_getCore, getPlatform as unstable_getPlatform } from './native';
+export type {
+  SyncFlowCore as unstable_SyncFlowCore,
+  SyncFlowPlatform as unstable_SyncFlowPlatform,
+} from './native';

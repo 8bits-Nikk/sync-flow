@@ -1,24 +1,24 @@
-import { Paths } from 'expo-file-system';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { unstable_getCore, VERSION } from '@nikhilll/sync-flow';
+import { unstable_getCore, unstable_getPlatform, VERSION } from '@nikhilll/sync-flow';
 
-// M0 gate check: open an encrypted database from JS, write one row, read it back.
-// The fixed key is for this smoke test only; real keys come from Keychain/Keystore (M0-08, D-07).
-const TEST_KEY = new Uint8Array(32).map((_, i) => (i * 7 + 1) & 0xff).buffer;
-
+// M0 gate check: open an encrypted database from JS with a key from Keychain/Keystore, write one
+// row, read it back. The launch counter proves the stored key reopens the same file next launch.
 function runGateCheck(): string {
   const core = unstable_getCore();
-  const path = `${decodeURIComponent(new URL(Paths.document.uri).pathname)}/m0-gate.db`;
-  core.open(path, TEST_KEY);
+  const platform = unstable_getPlatform();
+  const key = platform.getOrCreateKey('m0-gate');
+  core.open(`${platform.databaseDirectory}/m0-gate.db`, key);
   core.exec(
     'CREATE TABLE IF NOT EXISTS todos(id TEXT PRIMARY KEY, title TEXT);' +
-      "INSERT OR REPLACE INTO todos VALUES('m0', 'Milk');",
+      'CREATE TABLE IF NOT EXISTS launches(n INTEGER);' +
+      "INSERT OR REPLACE INTO todos VALUES('m0', 'Milk');" +
+      'INSERT INTO launches VALUES(1);',
   );
   const rows = core.queryText("SELECT title FROM todos WHERE id = 'm0'");
-  const cipher = core.queryText('PRAGMA cipher');
+  const launches = core.queryText('SELECT count(*) FROM launches');
   core.close();
-  return `DB OK: ${rows[0]?.[0] ?? '(missing)'} | cipher=${cipher[0]?.[0] ?? '?'}`;
+  return `DB OK: ${rows[0]?.[0] ?? '(missing)'} | launches=${launches[0]?.[0] ?? '?'}`;
 }
 
 export default function App() {

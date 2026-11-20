@@ -34,8 +34,9 @@ target_sources(
   ../nitrogen/generated/android/SyncFlowOnLoad.cpp
   # Shared Nitrogen C++ sources
   ../nitrogen/generated/shared/c++/HybridSyncFlowCoreSpec.cpp
+  ../nitrogen/generated/shared/c++/HybridSyncFlowPlatformSpec.cpp
   # Android-specific Nitrogen C++ sources
-  
+  ../nitrogen/generated/android/c++/JHybridSyncFlowPlatformSpec.cpp
 )
 
 # From node_modules/react-native/ReactAndroid/cmake-utils/folly-flags.cmake

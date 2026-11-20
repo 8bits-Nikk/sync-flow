@@ -8,10 +8,16 @@
 #pragma once
 
 // Forward declarations of C++ defined types
-
+// Forward declaration of `HybridSyncFlowPlatformSpec` to properly resolve imports.
+namespace margelo::nitro::syncflow { class HybridSyncFlowPlatformSpec; }
 
 // Include C++ defined types
-
+#include "HybridSyncFlowPlatformSpec.hpp"
+#include <NitroModules/ArrayBuffer.hpp>
+#include <NitroModules/Result.hpp>
+#include <exception>
+#include <memory>
+#include <string>
 
 // C++ helpers for Swift
 #include "SyncFlow-Swift-Cxx-Bridge.hpp"
@@ -23,7 +29,8 @@
 #include <NitroModules/DateToChronoDate.hpp>
 
 // Forward declarations of Swift defined types
-
+// Forward declaration of `HybridSyncFlowPlatformSpec_cxx` to properly resolve imports.
+namespace SyncFlow { class HybridSyncFlowPlatformSpec_cxx; }
 
 // Include Swift defined types
 #if __has_include("SyncFlow-Swift.h")
