@@ -1,0 +1,135 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  MAESTRO_VERSION: 2.12.1
+
+jobs:
+  js:
+    name: Lint, typecheck, build, test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm build
+      - run: pnpm test
+
+  cpp:
+    name: C++ core (${{ matrix.compiler }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [gcc, clang]
+    steps:
+      - uses: actions/checkout@v7
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq ninja-build libc++-dev libc++abi-dev
+      - name: Build and test
+        run: |
+          if [ "${{ matrix.compiler }}" = clang ]; then
+            export CC=clang CXX=clang++
+            EXTRA="-DCMAKE_CXX_FLAGS=-stdlib=libc++ -DCMAKE_EXE_LINKER_FLAGS=-stdlib=libc++"
+          fi
+          cmake -S packages/sync-flow/cpp -B build/cpp -G Ninja -DCMAKE_BUILD_TYPE=Debug $EXTRA
+          cmake --build build/cpp
+          ctest --test-dir build/cpp --output-on-failure
+
+  android:
+    name: Android build + Maestro gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 17
+      - run: pnpm install --frozen-lockfile
+      - name: Prebuild
+        working-directory: examples/expo-todo
+        run: npx expo prebuild --platform android --clean --no-install
+      - name: Build release APK (x86_64 for the emulator)
+        working-directory: examples/expo-todo/android
+        run: ./gradlew assembleRelease -PreactNativeArchitectures=x86_64 --no-daemon
+      - name: Build arm64 too (catches ARM-only compile errors)
+        working-directory: examples/expo-todo/android
+        run: ./gradlew :nikhilll_sync-flow:externalNativeBuildRelease -PreactNativeArchitectures=arm64-v8a --no-daemon
+      - uses: actions/upload-artifact@v7
+        with:
+          name: expo-todo-android
+          path: examples/expo-todo/android/app/build/outputs/apk/release/app-release.apk
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+      - name: Install Maestro
+        run: |
+          curl -fsSL "https://get.maestro.mobile.dev" | MAESTRO_VERSION=$MAESTRO_VERSION bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+      - name: Run gate on the emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          disable-animations: true
+          script: |
+            adb install examples/expo-todo/android/app/build/outputs/apk/release/app-release.apk
+            maestro test examples/expo-todo/.maestro/m0-gate.yaml
+
+  ios:
+    name: iOS build + Maestro gate
+    runs-on: macos-15
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Prebuild + pods
+        working-directory: examples/expo-todo
+        run: npx expo prebuild --platform ios --clean
+      - name: Build for the simulator (Release, no Metro needed)
+        working-directory: examples/expo-todo/ios
+        run: |
+          set -o pipefail
+          xcodebuild -workspace SyncFlowTodo.xcworkspace -scheme SyncFlowTodo \
+            -configuration Release -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO | tail -40
+      - name: Install Maestro
+        run: |
+          curl -fsSL "https://get.maestro.mobile.dev" | MAESTRO_VERSION=$MAESTRO_VERSION bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+      - name: Run gate on the simulator
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c "import json,sys; d=json.load(sys.stdin)['devices']; print(next(x['udid'] for k,v in d.items() if 'iOS' in k for x in v if x['name'].startswith('iPhone')))")
+          xcrun simctl boot "$UDID"
+          xcrun simctl install "$UDID" examples/expo-todo/ios/build/Build/Products/Release-iphonesimulator/SyncFlowTodo.app
+          maestro --device "$UDID" test examples/expo-todo/.maestro/m0-gate.yaml
